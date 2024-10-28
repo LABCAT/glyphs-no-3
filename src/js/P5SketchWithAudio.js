@@ -155,6 +155,7 @@ const P5SketchWithAudio = () => {
 
             if(currentCue === 1){
                 p.animatedGlyphs = [];
+                p.bgHue = p.random(0, 360);
             }
             
             p.animatedGlyphs2.push(
@@ -215,8 +216,11 @@ const P5SketchWithAudio = () => {
                 let x = p.random(p.width / 3, p.width - (p.width / 3));
                 let y = p.random(p.height / 3, p.height - (p.height / 3));
 
-                if(currentCue % 6 === 1 && currentCue < 18){
-                    p.animatedGlyphs = [];
+                if(currentCue % 6 === 1){
+                    p.bgHue = p.random(0, 360);
+                    if(currentCue < 18) {
+                        p.animatedGlyphs = [];
+                    }
                 }
 
                 p.animatedGlyphs2.push(
