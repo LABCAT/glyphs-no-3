@@ -1,5 +1,4 @@
 import AnimatedGlyph from './AnimatedGlyph.js';
-import ShuffleArray from '../functions/ShuffleArray.js';
 
 export default class LABCATGlyph extends AnimatedGlyph {
 

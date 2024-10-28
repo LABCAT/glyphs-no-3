@@ -7,7 +7,8 @@ import PlayIcon from './functions/PlayIcon.js';
 
 import CircleGlyph from './classes/CircleGlyph.js';
 import LABCATGlyph from './classes/LABCATGlyph.js';
-import StarGlyph from './classes/StarGlyph.js';
+import HexagonGlyph from './classes/HexagonGlyph.js';
+import TriangleGlyph from './classes/TriangleGlyph.js';
 
 import audio from "../audio/glyphs-no-3.ogg";
 import midi from "../audio/glyphs-no-3.mid";
@@ -46,6 +47,8 @@ const P5SketchWithAudio = () => {
                     p.scheduleCueSet(noteSet3, 'executeCueSet3'); 
                     const noteSet4 = Object.assign({},result.tracks[23].controlChanges); // Wave - Multichord - Filter 6
                     p.scheduleCueSet(noteSet4[Object.keys(noteSet4)[0]], 'executeCueSet4'); 
+                    const noteSet5 = result.tracks[10].notes; // Combinator 2 - Mysterious Glock
+                    p.scheduleCueSet(noteSet5, 'executeCueSet5');
                     p.audioLoaded = true;
                     document.getElementById("loader").classList.add("loading--complete");
                     document.getElementById("play-icon").classList.remove("fade-out");
@@ -116,9 +119,10 @@ const P5SketchWithAudio = () => {
             const { currentCue, midi }  = note;
             const variation = p.random(-p.width / 24, p.width / 24);
             const x = p.width / 2 + variation;
-            const y = p.height / 2  + variation
+            const y = p.height / 2  + variation;
             const size = p.random(p.width / 32, p.width / 64);
             const maxSize = p.width / 16;
+            const intervalPerNote = 20;
 
             if(currentCue % 62 === 1) {
                 p.circleGlyphScale++;
@@ -126,16 +130,18 @@ const P5SketchWithAudio = () => {
 
             if(midi < 67) {
                 for (let index = 0; index < 8; index++) {
-                    p.animatedGlyphs.push(
-                        new CircleGlyph(
-                            p, 
-                            x, 
-                            y, 
-                            maxSize / p.circleGlyphScale, 
-                            size / p.circleGlyphScale, 
-                            p.circleGlyphDarkMode
-                        )
-                    );
+                    setTimeout(() => {
+                        p.animatedGlyphs.push(
+                            new CircleGlyph(
+                                p, 
+                                x, 
+                                y, 
+                                maxSize / p.circleGlyphScale, 
+                                size / p.circleGlyphScale, 
+                                p.circleGlyphDarkMode
+                            )
+                        );
+                    }, intervalPerNote * index);
                 }
                 p.circleGlyphDarkMode = !p.circleGlyphDarkMode;
             }            
@@ -143,53 +149,44 @@ const P5SketchWithAudio = () => {
 
         p.executeCueSet2 = (note) => {
             const { currentCue } = note;
-            const vari = p.random(-p.width / 48, p.width / 48);
-            const size = p.width / 2;
-            const shapeType = p.random(['octagon', 'pentagon']);
-            const direction = p.random(['up', 'down']);
-            let x = p.width / 4 * 3 + vari;
-            let y = p.height / 4 + vari;
+            const size = p.random(p.height / 4, p.width / 4);
+            const x = p.width / 2;
+            const y = p.height / 2;
 
             if(currentCue === 1){
                 p.animatedGlyphs = [];
             }
-            if(currentCue % 22 === 0 || (currentCue % 22 > 4 && currentCue % 22 < 10) || currentCue % 22 > 14) {
-                y = p.height / 4 * 3 + vari;
-            }
-            if(currentCue % 22 === 0 || currentCue % 22 > 9) {
-                x = p.width / 4 + vari;
-            }
             
             p.animatedGlyphs2.push(
-                new LABCATGlyph(p, x, y, size, shapeType, direction)
+                new TriangleGlyph(p, x, y, size)
             );            
         }
 
         p.executeCueSet3 = (note) => {
             const { currentCue, durationTicks } = note;
-            const variation = p.random(-p.width / 24, p.width / 24);
+            const variation = p.random(-p.width / 64, p.width / 64);
             const x = p.width / 2 + variation;
-            const y = p.height / 2  + variation
-            const maxSize = p.width / 128;
+            const y = p.height / 2  + variation;
+            const maxSize = p.width / 32;
+            const numberOfNotes = durationTicks > 10000 ? 56 : 8;
             // Calculate milliseconds per tick
             const millisecondsPerTick = 60000 / (p.bpm * p.PPQ);
             // Calculate total duration in milliseconds
             const totalDurationMs = millisecondsPerTick * durationTicks;
             // Calculate interval per note
-            const intervalPerNote = totalDurationMs / 8;
-            console.log(currentCue);
-            console.log(note);
-            
+            const intervalPerNote = totalDurationMs / numberOfNotes;
 
-            if(currentCue > 18) {
-                for (let index = 0; index < 8; index++) {
+            if(currentCue >= 18) {
+                for (let index = 0; index < numberOfNotes; index++) {
                     setTimeout(() => {
                         p.animatedGlyphs.push(
-                            new StarGlyph(
+                            new HexagonGlyph(
                                 p, 
                                 x, 
                                 y, 
-                                maxSize
+                                maxSize,
+                                maxSize / 4,
+                                durationTicks > 10000
                             )
                         );
                     }, intervalPerNote * index);
@@ -205,6 +202,42 @@ const P5SketchWithAudio = () => {
                 p.starGlyphOpacity = note.value;
             }
         }
+
+        p.executeCueSet5 = (note) => {
+            const { currentCue } = note;
+
+            const delay = (60000 / p.bpm) / 4 * 3;
+
+            setTimeout(() => {
+                const variation = p.random(-p.width / 24, p.width / 24);
+                let size = p.width / 2;
+                let shapeType = p.random(['octagon', 'pentagon']);
+                let x = p.random(p.width / 3, p.width - (p.width / 3));
+                let y = p.random(p.height / 3, p.height - (p.height / 3));
+
+                if(currentCue % 6 === 1 && currentCue < 18){
+                    p.animatedGlyphs = [];
+                }
+
+                p.animatedGlyphs2.push(
+                    new LABCATGlyph(p, x, y, size, shapeType)
+                );
+
+                if(currentCue > 18) {
+                    x = p.width / 2 + variation;
+                    y = p.height / 2  + variation;
+                    size = p.random(p.width / 8, p.width / 12);
+                    const intervalPerNote = 50;
+                    for (let index = 0; index < 8; index++) {
+                        setTimeout(() => {
+                            p.animatedGlyphs2.push(
+                                new LABCATGlyph(p, x, y, size, shapeType)
+                            );
+                        }, intervalPerNote * index);
+                    }
+                }  
+            }, delay);
+        };
 
         p.hasStarted = false;
 
